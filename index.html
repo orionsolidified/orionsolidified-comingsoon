@@ -1,13 +1,884 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orion Solidified, Inc. | Dare to believe</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600;700&family=Libre+Baskerville:ital@0;1&display=swap" rel="stylesheet">
     <style>
-      html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
+        :root {
+            --bg-deep: #050810;
+            --bg-section: #0a0e1a;
+            --text-white: #ffffff;
+            --text-muted: #8b9dc3;
+            --accent-blue: #a8c0ff;
+            --accent-purple: #8b5cf6;
+            --accent-pink: #c084fc;
+            --horizon-warm: #1a0a0a;
+            --star-glow: rgba(168, 192, 255, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Josefin Sans', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-white);
+            overflow-x: hidden;
+            line-height: 1.7;
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Horizon glow overlay */
+        .horizon-glow {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: linear-gradient(
+                to top,
+                rgba(60, 20, 15, 0.6) 0%,
+                rgba(40, 15, 10, 0.3) 30%,
+                transparent 100%
+            );
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .horizon-glow-right {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 50%;
+            height: 35%;
+            background: radial-gradient(
+                ellipse at bottom right,
+                rgba(80, 30, 20, 0.5) 0%,
+                rgba(50, 20, 15, 0.3) 40%,
+                transparent 70%
+            );
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* Forest silhouette */
+        .forest-silhouette {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .company-name {
+            font-family: 'Josefin Sans', sans-serif;
+            font-weight: 300;
+            font-size: clamp(1.8rem, 5vw, 3.5rem);
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: var(--text-white);
+            text-shadow: 0 0 60px rgba(168, 192, 255, 0.5),
+                         0 0 120px rgba(139, 92, 246, 0.3);
+            margin-bottom: 1rem;
+            animation: fadeInUp 2s ease-out;
+        }
+
+        .tagline {
+            font-family: 'Libre Baskerville', serif;
+            font-style: italic;
+            font-size: clamp(1rem, 2vw, 1.4rem);
+            color: var(--accent-blue);
+            letter-spacing: 0.2em;
+            opacity: 0.9;
+            animation: fadeInUp 2s ease-out 0.3s both;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            animation: fadeInUp 2s ease-out 0.6s both;
+        }
+
+        .scroll-text {
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .scroll-line {
+            width: 1px;
+            height: 60px;
+            background: linear-gradient(to bottom, var(--accent-blue), transparent);
+            animation: scrollPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.3; transform: scaleY(1); }
+            50% { opacity: 1; transform: scaleY(1.2); }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Sections */
+        section {
+            position: relative;
+            padding: 120px 5%;
+            background: var(--bg-section);
+        }
+
+        section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent-purple), transparent);
+            opacity: 0.3;
+        }
+
+        .section-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: var(--accent-purple);
+            margin-bottom: 2rem;
+        }
+
+        /* About Section */
+        .about {
+            background: linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-section) 100%);
+        }
+
+        .about-text {
+            font-family: 'Libre Baskerville', serif;
+            font-size: clamp(1.1rem, 2vw, 1.3rem);
+            line-height: 2;
+            color: var(--text-muted);
+            max-width: 800px;
+        }
+
+        .about-text p {
+            margin-bottom: 1.5rem;
+        }
+
+        /* Contact Section */
+        .contact {
+            background: var(--bg-section);
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.5rem;
+        }
+
+        .contact-icon {
+            width: 50px;
+            height: 50px;
+            border: 1px solid var(--accent-purple);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .contact-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--accent-blue);
+        }
+
+        .contact-item:hover .contact-icon {
+            background: var(--accent-purple);
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.4);
+        }
+
+        .contact-item:hover .contact-icon svg {
+            stroke: var(--text-white);
+        }
+
+        .contact-label {
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-value {
+            font-size: 1rem;
+            color: var(--text-white);
+        }
+
+        .contact-value a {
+            color: var(--text-white);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-value a:hover {
+            color: var(--accent-blue);
+        }
+
+        /* Portfolio Section */
+        .portfolio {
+            background: linear-gradient(180deg, var(--bg-section) 0%, var(--bg-deep) 100%);
+        }
+
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        .portfolio-item {
+            aspect-ratio: 16/9;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .portfolio-item::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .portfolio-item:hover {
+            border-color: var(--accent-purple);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
+        }
+
+        .portfolio-item:hover::before {
+            opacity: 1;
+        }
+
+        .portfolio-logo {
+            font-family: 'Josefin Sans', sans-serif;
+            font-weight: 600;
+            font-size: 1.2rem;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            transition: color 0.3s ease;
+        }
+
+        .portfolio-item:hover .portfolio-logo {
+            color: var(--text-white);
+        }
+
+        /* Footer */
+        footer {
+            padding: 40px 5%;
+            background: var(--bg-deep);
+            text-align: center;
+            border-top: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .footer-text {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .company-name {
+                letter-spacing: 0.2em;
+            }
+            
+            section {
+                padding: 80px 5%;
+            }
+            
+            .contact-grid {
+                gap: 2rem;
+            }
+        }
     </style>
-  </head>
-  <body>
-    <script type="module" src="/main.js"></script>
-  </body>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div id="canvas-container"></div>
+        <div class="horizon-glow"></div>
+        <div class="horizon-glow-right"></div>
+        
+        <!-- Forest silhouette SVG -->
+        <svg class="forest-silhouette" viewBox="0 0 1920 80" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#000000" d="
+                M0,80 L0,65
+                L15,65 L20,45 L25,65
+                L35,65 L42,35 L49,65
+                L60,65 L65,50 L70,65
+                L85,65 L95,25 L105,65
+                L115,65 L120,55 L125,65
+                L140,65 L150,30 L160,65
+                L175,65 L180,50 L185,65
+                L200,65 L210,20 L220,65
+                L235,65 L242,40 L249,65
+                L265,65 L275,28 L285,65
+                L300,65 L305,52 L310,65
+                L325,65 L335,22 L345,65
+                L360,65 L368,45 L376,65
+                L390,65 L400,32 L410,65
+                L425,65 L432,55 L439,65
+                L455,65 L465,18 L475,65
+                L490,65 L498,42 L506,65
+                L520,65 L530,30 L540,65
+                L555,65 L562,48 L569,65
+                L585,65 L595,24 L605,65
+                L620,65 L628,52 L636,65
+                L650,65 L660,35 L670,65
+                L685,65 L692,45 L699,65
+                L715,65 L725,20 L735,65
+                L750,65 L758,55 L766,65
+                L780,65 L790,28 L800,65
+                L815,65 L822,42 L829,65
+                L845,65 L855,32 L865,65
+                L880,65 L888,50 L896,65
+                L910,65 L920,22 L930,65
+                L945,65 L952,48 L959,65
+                L975,65 L985,26 L995,65
+                L1010,65 L1018,55 L1026,65
+                L1040,65 L1050,30 L1060,65
+                L1075,65 L1082,42 L1089,65
+                L1105,65 L1115,18 L1125,65
+                L1140,65 L1148,52 L1156,65
+                L1170,65 L1180,35 L1190,65
+                L1205,65 L1212,45 L1219,65
+                L1235,65 L1245,24 L1255,65
+                L1270,65 L1278,55 L1286,65
+                L1300,65 L1310,28 L1320,65
+                L1335,65 L1342,48 L1349,65
+                L1365,65 L1375,20 L1385,65
+                L1400,65 L1408,42 L1416,65
+                L1430,65 L1440,32 L1450,65
+                L1465,65 L1472,52 L1479,65
+                L1495,65 L1505,26 L1515,65
+                L1530,65 L1538,45 L1546,65
+                L1560,65 L1570,22 L1580,65
+                L1595,65 L1602,55 L1609,65
+                L1625,65 L1635,30 L1645,65
+                L1660,65 L1668,48 L1676,65
+                L1690,65 L1700,18 L1710,65
+                L1725,65 L1732,42 L1739,65
+                L1755,65 L1765,35 L1775,65
+                L1790,65 L1798,52 L1806,65
+                L1820,65 L1830,24 L1840,65
+                L1855,65 L1862,45 L1869,65
+                L1885,65 L1895,28 L1905,65
+                L1920,65 L1920,80 Z
+            "/>
+        </svg>
+        
+        <div class="hero-content">
+            <h1 class="company-name">Orion Solidified, Inc.</h1>
+            <p class="tagline">Dare to believe</p>
+        </div>
+        <a href="#about" class="scroll-indicator">
+            <span class="scroll-text">Explore</span>
+            <div class="scroll-line"></div>
+        </a>
+    </section>
+
+    <!-- About Section -->
+    <section class="about" id="about">
+        <div class="section-container">
+            <span class="section-label">About Us</span>
+            <div class="about-text">
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum euismod nisi vel ante consequat, sit amet fermentum sapien tincidunt. Praesent vitae ligula vel nunc ultricies fermentum. Sed auctor, magna a bibendum bibendum, augue magna tincidunt enim, eget ultricies magna augue eget risus.</p>
+                <p>Nullam quis risus eget urna mollis ornare vel eu leo. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nullam id dolor id nibh ultricies vehicula ut id elit. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.</p>
+                <p>Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec ullamcorper nulla non metus auctor fringilla. Praesent commodo cursus magna, vel scelerisque nisl consectetur et.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <div class="section-container">
+            <span class="section-label">Contact</span>
+            <div class="contact-grid">
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="contact-label">Address</p>
+                        <p class="contact-value">15555, Main Street<br>Hesperia, California 92345</p>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="contact-label">Phone</p>
+                        <p class="contact-value"><a href="tel:8184830100">818 483 0100</a></p>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="contact-label">Email</p>
+                        <p class="contact-value"><a href="mailto:hello@orionsolidified.io">hello@orionsolidified.io</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Portfolio Section -->
+    <section class="portfolio" id="portfolio">
+        <div class="section-container">
+            <span class="section-label">Portfolio Companies</span>
+            <div class="portfolio-grid">
+                <div class="portfolio-item">
+                    <span class="portfolio-logo">NEXUS AI</span>
+                </div>
+                <div class="portfolio-item">
+                    <span class="portfolio-logo">QUANTUMLEAP</span>
+                </div>
+                <div class="portfolio-item">
+                    <span class="portfolio-logo">STELLARTECH</span>
+                </div>
+                <div class="portfolio-item">
+                    <span class="portfolio-logo">CYBERFORGE</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p class="footer-text">© 2025 Orion Solidified, Inc. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Optimized Three.js - Accurate Orion Constellation matching reference image
+        (function() {
+            'use strict';
+            
+            const container = document.getElementById('canvas-container');
+            
+            // State management
+            let isVisible = true;
+            let animationId = null;
+            let time = 0;
+            
+            // Reusable objects
+            const mouseTarget = { x: 0, y: 0 };
+            const mouseCurrent = { x: 0, y: 0 };
+            
+            // Scene setup
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 50;
+            
+            const renderer = new THREE.WebGLRenderer({ 
+                antialias: true, 
+                alpha: true,
+                powerPreference: 'high-performance'
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setClearColor(0x050810, 1);
+            container.appendChild(renderer.domElement);
+            
+            // Texture cache
+            const textureCache = {};
+            
+            function getGlowTexture(color) {
+                const key = color.toString(16);
+                if (textureCache[key]) return textureCache[key];
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = 64;
+                canvas.height = 64;
+                const ctx = canvas.getContext('2d');
+                
+                const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+                const colorObj = new THREE.Color(color);
+                const r = Math.floor(colorObj.r * 255);
+                const g = Math.floor(colorObj.g * 255);
+                const b = Math.floor(colorObj.b * 255);
+                
+                gradient.addColorStop(0, `rgba(${r},${g},${b},1)`);
+                gradient.addColorStop(0.15, `rgba(${r},${g},${b},0.8)`);
+                gradient.addColorStop(0.4, `rgba(${r},${g},${b},0.2)`);
+                gradient.addColorStop(1, 'transparent');
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, 64, 64);
+                
+                const texture = new THREE.CanvasTexture(canvas);
+                textureCache[key] = texture;
+                return texture;
+            }
+            
+            // ============================================
+            // ACCURATE STAR POSITIONS (matching reference)
+            // Orion shifted to RIGHT side, proper angles
+            // ============================================
+            
+            // Orion constellation - positioned on RIGHT side of screen
+            // Coordinates: x (left-right), y (up-down), z (depth)
+            const orionStars = [
+                // Betelgeuse - red supergiant (left shoulder) - reddish/orange
+                { x: 8, y: 20, z: 0, size: 0.7, color: 0xff7b5a, name: 'Betelgeuse' },
+                
+                // Rigel - blue supergiant (right foot) - bright blue-white
+                { x: 22, y: -12, z: 0, size: 0.75, color: 0xc8e0ff, name: 'Rigel' },
+                
+                // Bellatrix (right shoulder) - blue-white
+                { x: 20, y: 18, z: 0, size: 0.45, color: 0xd0e8ff, name: 'Bellatrix' },
+                
+                // Saiph (left foot) - blue-white
+                { x: 10, y: -10, z: 0, size: 0.4, color: 0xc8d8ff, name: 'Saiph' },
+                
+                // Belt stars - diagonal line (upper right to lower left)
+                { x: 11, y: 6, z: 0, size: 0.4, color: 0xd8e8ff, name: 'Alnitak' },
+                { x: 14, y: 7.5, z: 0, size: 0.45, color: 0xd8e8ff, name: 'Alnilam' },
+                { x: 17, y: 9, z: 0, size: 0.4, color: 0xd8e8ff, name: 'Mintaka' },
+                
+                // Sword stars (below belt)
+                { x: 12, y: 1, z: 0, size: 0.2, color: 0xc8d8ff, name: 'Sword1' },
+                { x: 13, y: -1.5, z: 0, size: 0.25, color: 0xd8b8ff, name: 'Nebula' },
+                { x: 14, y: -4, z: 0, size: 0.2, color: 0xc8d8ff, name: 'Sword2' },
+                
+                // Head star (Meissa)
+                { x: 14, y: 26, z: 0, size: 0.3, color: 0xd8e8ff, name: 'Meissa' },
+            ];
+            
+            // Other bright stars in the scene
+            const otherStars = [
+                // Sirius - brightest star, LEFT side, white/blue-white
+                { x: -32, y: 8, z: 0, size: 0.9, color: 0xffffff, name: 'Sirius' },
+                
+                // Procyon or another bright star - LEFT side upper
+                { x: -28, y: 22, z: 0, size: 0.5, color: 0xfff8f0, name: 'Star2' },
+                
+                // Bright star bottom center (could be Mirzam or similar)
+                { x: -5, y: -22, z: 0, size: 0.65, color: 0xfffef8, name: 'BottomStar' },
+            ];
+            
+            // All stars combined
+            const allBrightStars = [...orionStars, ...otherStars];
+            
+            // Constellation group
+            const constellationGroup = new THREE.Group();
+            
+            // Shared geometry
+            const sharedSphereGeometry = new THREE.SphereGeometry(1, 16, 16);
+            
+            // Create all bright stars
+            allBrightStars.forEach((star) => {
+                const material = new THREE.MeshBasicMaterial({ color: star.color });
+                const mesh = new THREE.Mesh(sharedSphereGeometry, material);
+                mesh.position.set(star.x, star.y, star.z);
+                mesh.scale.setScalar(star.size);
+                constellationGroup.add(mesh);
+                
+                // Glow
+                const spriteMaterial = new THREE.SpriteMaterial({
+                    map: getGlowTexture(star.color),
+                    blending: THREE.AdditiveBlending,
+                    transparent: true,
+                    opacity: 0.85,
+                    depthWrite: false
+                });
+                const sprite = new THREE.Sprite(spriteMaterial);
+                sprite.scale.set(star.size * 10, star.size * 10, 1);
+                sprite.position.copy(mesh.position);
+                constellationGroup.add(sprite);
+            });
+            
+            // Orion constellation lines (only connect Orion stars, indices 0-10)
+            const linePositions = [];
+            const connections = [
+                [0, 10],  // Betelgeuse to Meissa (head)
+                [2, 10],  // Bellatrix to Meissa
+                [0, 4],   // Betelgeuse to Alnitak
+                [2, 6],   // Bellatrix to Mintaka
+                [4, 5],   // Belt
+                [5, 6],   // Belt
+                [4, 3],   // Alnitak to Saiph
+                [6, 1],   // Mintaka to Rigel
+                [5, 8],   // Alnilam to Nebula (sword)
+            ];
+            
+            connections.forEach(([i, j]) => {
+                linePositions.push(
+                    orionStars[i].x, orionStars[i].y, orionStars[i].z,
+                    orionStars[j].x, orionStars[j].y, orionStars[j].z
+                );
+            });
+            
+            const lineGeometry = new THREE.BufferGeometry();
+            lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+            const lineMaterial = new THREE.LineBasicMaterial({ 
+                color: 0x4a5568,
+                transparent: true,
+                opacity: 0.25
+            });
+            const lines = new THREE.LineSegments(lineGeometry, lineMaterial);
+            constellationGroup.add(lines);
+            
+            // Orion Nebula glow (purple/pink)
+            const nebulaCanvas = document.createElement('canvas');
+            nebulaCanvas.width = 128;
+            nebulaCanvas.height = 128;
+            const nebulaCtx = nebulaCanvas.getContext('2d');
+            const nebulaGradient = nebulaCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
+            nebulaGradient.addColorStop(0, 'rgba(180, 120, 220, 0.9)');
+            nebulaGradient.addColorStop(0.2, 'rgba(150, 100, 200, 0.5)');
+            nebulaGradient.addColorStop(0.5, 'rgba(120, 80, 180, 0.2)');
+            nebulaGradient.addColorStop(1, 'transparent');
+            nebulaCtx.fillStyle = nebulaGradient;
+            nebulaCtx.fillRect(0, 0, 128, 128);
+            
+            const nebulaTexture = new THREE.CanvasTexture(nebulaCanvas);
+            const nebulaMaterial = new THREE.SpriteMaterial({
+                map: nebulaTexture,
+                blending: THREE.AdditiveBlending,
+                transparent: true,
+                opacity: 0.5,
+                depthWrite: false
+            });
+            const nebulaSprite = new THREE.Sprite(nebulaMaterial);
+            nebulaSprite.scale.set(12, 12, 1);
+            nebulaSprite.position.set(13, -1.5, -1);
+            constellationGroup.add(nebulaSprite);
+            
+            scene.add(constellationGroup);
+            
+            // Background stars with shader
+            const bgStarsCount = 1800;
+            const bgPositions = new Float32Array(bgStarsCount * 3);
+            const bgSizes = new Float32Array(bgStarsCount);
+            const bgPhases = new Float32Array(bgStarsCount);
+            
+            for (let i = 0; i < bgStarsCount; i++) {
+                bgPositions[i * 3] = (Math.random() - 0.5) * 200;
+                bgPositions[i * 3 + 1] = (Math.random() - 0.5) * 150;
+                bgPositions[i * 3 + 2] = (Math.random() - 0.5) * 80 - 30;
+                bgSizes[i] = Math.random() * 1.5 + 0.3;
+                bgPhases[i] = Math.random() * Math.PI * 2;
+            }
+            
+            const bgGeometry = new THREE.BufferGeometry();
+            bgGeometry.setAttribute('position', new THREE.BufferAttribute(bgPositions, 3));
+            bgGeometry.setAttribute('size', new THREE.BufferAttribute(bgSizes, 1));
+            bgGeometry.setAttribute('phase', new THREE.BufferAttribute(bgPhases, 1));
+            
+            const bgMaterial = new THREE.ShaderMaterial({
+                uniforms: {
+                    uTime: { value: 0 },
+                    uPixelRatio: { value: renderer.getPixelRatio() }
+                },
+                vertexShader: `
+                    attribute float size;
+                    attribute float phase;
+                    uniform float uTime;
+                    uniform float uPixelRatio;
+                    varying float vOpacity;
+                    
+                    void main() {
+                        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                        gl_Position = projectionMatrix * mvPosition;
+                        gl_PointSize = size * uPixelRatio * (180.0 / -mvPosition.z);
+                        vOpacity = 0.4 + 0.6 * sin(uTime * 1.5 + phase);
+                    }
+                `,
+                fragmentShader: `
+                    varying float vOpacity;
+                    
+                    void main() {
+                        float dist = length(gl_PointCoord - vec2(0.5));
+                        if (dist > 0.5) discard;
+                        float alpha = smoothstep(0.5, 0.0, dist) * vOpacity;
+                        gl_FragColor = vec4(1.0, 1.0, 1.0, alpha * 0.7);
+                    }
+                `,
+                transparent: true,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending
+            });
+            
+            const bgStars = new THREE.Points(bgGeometry, bgMaterial);
+            scene.add(bgStars);
+            
+            // Visibility observer
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    isVisible = entry.isIntersecting;
+                    if (isVisible && !animationId) {
+                        animate();
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            observer.observe(container);
+            
+            // Animation loop
+            function animate() {
+                if (!isVisible) {
+                    animationId = null;
+                    return;
+                }
+                
+                animationId = requestAnimationFrame(animate);
+                time += 0.004;
+                
+                // Smooth mouse
+                mouseCurrent.x += (mouseTarget.x - mouseCurrent.x) * 0.03;
+                mouseCurrent.y += (mouseTarget.y - mouseCurrent.y) * 0.03;
+                
+                // Subtle movement
+                constellationGroup.rotation.y = Math.sin(time * 0.15) * 0.015 + mouseCurrent.x * 0.03;
+                constellationGroup.rotation.x = Math.cos(time * 0.1) * 0.008 - mouseCurrent.y * 0.03;
+                
+                bgMaterial.uniforms.uTime.value = time;
+                
+                bgStars.rotation.y = time * 0.015;
+                bgStars.rotation.x = time * 0.008;
+                
+                renderer.render(scene, camera);
+            }
+            
+            animate();
+            
+            // Throttled resize
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                    bgMaterial.uniforms.uPixelRatio.value = renderer.getPixelRatio();
+                }, 100);
+            });
+            
+            // Throttled mouse
+            let mouseTimeout;
+            document.addEventListener('mousemove', (e) => {
+                if (mouseTimeout) return;
+                mouseTimeout = setTimeout(() => {
+                    mouseTarget.x = (e.clientX / window.innerWidth - 0.5) * 2;
+                    mouseTarget.y = (e.clientY / window.innerHeight - 0.5) * 2;
+                    mouseTimeout = null;
+                }, 16);
+            });
+            
+            // Cleanup
+            window.addEventListener('beforeunload', () => {
+                observer.disconnect();
+                sharedSphereGeometry.dispose();
+                lineGeometry.dispose();
+                bgGeometry.dispose();
+                lineMaterial.dispose();
+                nebulaMaterial.dispose();
+                bgMaterial.dispose();
+                Object.values(textureCache).forEach(t => t.dispose());
+                nebulaTexture.dispose();
+                renderer.dispose();
+                if (animationId) cancelAnimationFrame(animationId);
+            });
+            
+        })();
+    </script>
+</body>
 </html>
