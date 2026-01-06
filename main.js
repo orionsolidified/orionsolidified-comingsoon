@@ -1,80 +1,76 @@
-import * as THREE from "three";
+import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 
+const IMAGE_URL = "./sitebackground.webp";
+
+// Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
-// Optional: make it a true background layer
-renderer.domElement.style.position = "fixed";
-renderer.domElement.style.inset = "0";
-renderer.domElement.style.zIndex = "-1";
-
+// Scene + ortho camera (no perspective distortion)
 const scene = new THREE.Scene();
-
-// Orthographic camera (we'll treat world units as screen units)
 const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 10);
 camera.position.z = 1;
 
-// Plane
+// Fullscreen textured plane
 const geometry = new THREE.PlaneGeometry(1, 1);
 const material = new THREE.MeshBasicMaterial();
-const mesh = new THREE.Mesh(geometry, material);
-scene.add(mesh);
+const plane = new THREE.Mesh(geometry, material);
+scene.add(plane);
 
-let imgAspect = 1; // will be set after texture loads
+let imgAspect = 1; // width/height after texture load
 
 const loader = new THREE.TextureLoader();
-loader.load("/sitebackground.webp", (texture) => {
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-  material.map = texture;
-  material.needsUpdate = true;
+loader.load(
+  IMAGE_URL,
+  (texture) => {
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
 
-  // Read image dimensions once available
-  const { width, height } = texture.image;
-  imgAspect = width / height;
+    material.map = texture;
+    material.needsUpdate = true;
 
-  resize();     // fit correctly
-  renderOnce(); // draw
-});
+    imgAspect = texture.image.width / texture.image.height;
+
+    resize();     // fit to viewport
+    renderOnce(); // draw once (static background)
+  },
+  undefined,
+  (err) => console.error("Texture load failed:", err)
+);
 
 function resize() {
   const w = window.innerWidth;
   const h = window.innerHeight;
+  const viewAspect = w / h;
 
   renderer.setSize(w, h);
 
-  // Set camera bounds to match viewport aspect in "world units"
-  const viewAspect = w / h;
+  // Camera view: height is 2 units; width is 2*viewAspect units
   camera.left = -viewAspect;
   camera.right = viewAspect;
   camera.top = 1;
   camera.bottom = -1;
   camera.updateProjectionMatrix();
 
-  // Cover logic: scale plane so it fully covers camera view
-  // Camera view size: width = 2*viewAspect, height = 2
+  // "cover" scaling (like CSS background-size: cover)
   const viewW = 2 * viewAspect;
   const viewH = 2;
 
-  // Plane base size is 1x1, but texture aspect matters.
-  // We'll scale X and Y so the textured plane covers the view.
-  const planeAspect = imgAspect;
-
   let scaleX, scaleY;
-  if (viewAspect > planeAspect) {
-    // viewport wider -> match width, crop height
+  if (viewAspect > imgAspect) {
+    // viewport wider than image -> match width, crop height
     scaleX = viewW;
-    scaleY = viewW / planeAspect;
+    scaleY = viewW / imgAspect;
   } else {
-    // viewport taller -> match height, crop width
+    // viewport taller than image -> match height, crop width
     scaleY = viewH;
-    scaleX = viewH * planeAspect;
+    scaleX = viewH * imgAspect;
   }
 
-  mesh.scale.set(scaleX, scaleY, 1);
+  plane.scale.set(scaleX, scaleY, 1);
 }
 
 function renderOnce() {
