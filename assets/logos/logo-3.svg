@@ -1,5 +1,0 @@
-<svg width="200" height="80" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
-  <path d="M 30 40 L 50 20 L 50 40 L 70 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="85" cy="30" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
-  <text x="100" y="45" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="currentColor">Future</text>
-</svg>
